@@ -54,7 +54,13 @@ function canas_proto.dissector(buffer, pinfo, tree)
     subtree = subtree:add(buffer(0, 8), "CAN")
     local canId = bytes_to_int(buffer(2, 1):uint(), buffer(1, 1):uint(), buffer(0, 1):uint())
     subtree:add(buffer(0, 3), "CAN-ID: " .. canId, canId2Text(canId))
+
     -- todo -- get flags, bit32.band(0xf,0x2)
+    --* Controller Area Network Identifier structure
+    --* bit 0-28	: CAN identifier (11/29 bit)
+    --* bit 29	: error message frame flag (0 = data frame, 1 = error message)
+    --* bit 30	: remote transmission request flag (1 = rtr frame)
+    --* bit 31	: frame format flag (0 = standard 11 bit, 1 = extended 29 bit)
     subtree:add(buffer(3, 1), "flags, xtd: " .. buffer(3, 1), buffer(3, 1), "rtr: " .. buffer(3, 1), buffer(3, 1), "err: " .. buffer(3, 1))
     subtree:add(buffer(4, 1), "len: " .. buffer(4, 1))
     subtree:add(buffer(5, 3), "reserved: " .. buffer(3, 3))
@@ -65,6 +71,7 @@ function canas_proto.dissector(buffer, pinfo, tree)
     subtree:add(buffer(9, 1), "Data Type: " .. buffer(9, 1):uint())
     subtree:add(buffer(10, 1), "Service Code: " .. buffer(10, 1):uint())
     subtree:add(buffer(11, 1), "Message Code: " .. buffer(11, 1):uint())
+    -- todo -- decode message according to https://www.stockflightsystems.com/tl_files/downloads/canaerospace/canas_17.pdf
     subtree:add(buffer(12, 4), "Data: " .. buffer(12, 4):uint())
 end
 
