@@ -18,7 +18,7 @@ function canId2Text(canId)
     if canId2TextTable[canId] == nil then
         return ""
     else
-        return "(", canId2TextTable[canId], ")"
+        return "(" .. canId2TextTable[canId] .. ")"
     end
 end
 
