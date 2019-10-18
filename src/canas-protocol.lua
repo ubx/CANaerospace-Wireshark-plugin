@@ -35,7 +35,7 @@ function canas_proto.dissector(buffer, pinfo, tree)
 
     -- CAN part
     subtree = subtree:add(buffer(0, 8), "CAN")
-    local canId = bytes2int(buffer(2, 1):uint(), buffer(1, 1):uint(), buffer(0, 1):uint())
+    local canId = buffer(0, 3):le_int()
     subtree:add(buffer(0, 3), "CAN-ID: " .. canId, canId2Text(canId))
 
     -- todo -- get flags, bit32.band(0xf,0x2)

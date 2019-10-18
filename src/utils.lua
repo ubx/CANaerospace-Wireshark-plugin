@@ -12,13 +12,7 @@
 -- GNU General Public License for more details.
 --
 -- You should have received a copy of the GNU General Public License
--- along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
--- convert bytes (network order) to a 24-bit two's complement integer
-function bytes2int(b0, b1, b2)
-    local n = b0 * 65536 + b1 * 256 + b2
-    return n
-end
+-- along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 function canId2Text(canId)
     if canId2TextTable[canId] == nil then
