@@ -18,30 +18,13 @@
 --
 -- Run with: wireshark -X lua_script:canas-protocol.lua
 
+utils=require("utils")
+
 RUN_TESTS = os.getenv("TEST")
 
 if RUN_TESTS then
     _G.debug = require("debug")
     local luacov = require("luacov")
-end
-
--- convert bytes (network order) to a 24-bit two's complement integer
-function bytes_to_int(b0, b1, b2)
-    local n = b0 * 65536 + b1 * 256 + b2
-    return n
-end
-
-canId2TextTab = {
-    [1200] = "utc",
-    [1930] = "debug"
-}
-
-function canId2Text(canId)
-    if canId2TextTab[canId] == nil then
-        return ""
-    else
-        return "(", canId2TextTab[canId], ")"
-    end
 end
 
 canas_proto = Proto("canas", "CANaerospace Protocol")
@@ -52,7 +35,7 @@ function canas_proto.dissector(buffer, pinfo, tree)
 
     -- CAN part
     subtree = subtree:add(buffer(0, 8), "CAN")
-    local canId = bytes_to_int(buffer(2, 1):uint(), buffer(1, 1):uint(), buffer(0, 1):uint())
+    local canId = bytes2int(buffer(2, 1):uint(), buffer(1, 1):uint(), buffer(0, 1):uint())
     subtree:add(buffer(0, 3), "CAN-ID: " .. canId, canId2Text(canId))
 
     -- todo -- get flags, bit32.band(0xf,0x2)
