@@ -1,2 +1,2 @@
-# CANaerospace_Wireshark_plugin
+# CANaerospace Wireshark plugin
 CANaerospace Wireshark Lua plugin
