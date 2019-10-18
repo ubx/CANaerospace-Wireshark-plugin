@@ -22,12 +22,18 @@ function canId2Text(canId)
     end
 end
 
-function getValue(buffer, dataType)
+function getValue(buffer, dataType, canId)
     if dataType == 2 then
         return buffer:float()
     elseif dataType == 3 then
         return buffer:int()
     elseif dataType == 12 then
+        return buffer(0, 4):uint()
+    elseif dataType == 15 then
+        if canId == 1200 then
+            -- utc
+            return buffer(0, 1):uint() * 3600 + (buffer(1, 1):uint() * 60) + buffer(2, 1):uint()
+        end
         return buffer(0, 4):uint()
     elseif dataType == 16 then
         return buffer:uint()

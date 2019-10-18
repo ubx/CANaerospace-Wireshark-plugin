@@ -59,7 +59,7 @@ function canas_proto.dissector(buffer, pinfo, tree)
     subtree:add(buffer(10, 1), "Service Code: " .. buffer(10, 1):uint())
     subtree:add(buffer(11, 1), "Message Code: " .. buffer(11, 1):uint())
     -- todo -- decode message according to https://www.stockflightsystems.com/tl_files/downloads/canaerospace/canas_17.pdf
-    subtree:add(buffer(12, 4), "Data: " .. getValue(buffer(12,4), dataType))
+    subtree:add(buffer(12, 4), "Data: " .. getValue(buffer(12,4), dataType, canId))
 end
 
 
