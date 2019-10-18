@@ -22,6 +22,24 @@ function canId2Text(canId)
     end
 end
 
+function getValue(buffer, dataType)
+    if dataType == 2 then
+        return buffer:float()
+    elseif dataType == 3 then
+        return buffer:int()
+    elseif dataType == 12 then
+        return buffer(0, 4):uint()
+    elseif dataType == 16 then
+        return buffer:uint()
+    elseif dataType == 30 then
+        return buffer:uint() % 1E7 -- todo correct ??
+    elseif dataType == 31 then
+        return buffer:uint() / 1E7 -- todo correct ??
+    else
+        return buffer
+    end
+end
+
 canId2TextTable = {
     [300] = "Body Longitudinal Acceleration",
     [301] = "Body Lateral Acceleration",

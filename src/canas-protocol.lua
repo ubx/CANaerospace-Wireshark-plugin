@@ -28,6 +28,9 @@ if RUN_TESTS then
 end
 
 canas_proto = Proto("canas", "CANaerospace Protocol")
+
+-- todo -- add fields for filters
+
 -- create a function to dissect it
 function canas_proto.dissector(buffer, pinfo, tree)
     pinfo.cols.protocol = "CANaerospace"
@@ -51,12 +54,15 @@ function canas_proto.dissector(buffer, pinfo, tree)
     -- CANaerospace part
     subtree = subtree:add(buffer(8, 8), "aerospace")
     subtree:add(buffer(8, 1), "Node-ID: " .. buffer(8, 1):uint())
-    subtree:add(buffer(9, 1), "Data Type: " .. buffer(9, 1):uint())
+    local dataType = buffer(9, 1):uint()
+    subtree:add(buffer(9, 1), "Data Type: " .. dataType)
     subtree:add(buffer(10, 1), "Service Code: " .. buffer(10, 1):uint())
     subtree:add(buffer(11, 1), "Message Code: " .. buffer(11, 1):uint())
     -- todo -- decode message according to https://www.stockflightsystems.com/tl_files/downloads/canaerospace/canas_17.pdf
-    subtree:add(buffer(12, 4), "Data: " .. buffer(12, 4):uint())
+    subtree:add(buffer(12, 4), "Data: " .. getValue(buffer(12,4), dataType))
 end
+
+
 
 dissector_table = DissectorTable.get("sll.ltype")
 dissector_table:add(12, canas_proto)
