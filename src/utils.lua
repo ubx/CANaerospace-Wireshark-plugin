@@ -14,15 +14,9 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>
 
-function canId2Text(canId)
-    if canId2TextTable[canId] == nil then
-        return ""
-    else
-        return "(" .. canId2TextTable[canId] .. ")"
-    end
-end
-
-function getValue(buffer, dataType, canId)
+-- interpret buffer according to https://www.stockflightsystems.com/tl_files/downloads/canaerospace/canas_17.pdf
+-- WIP: to be extended !
+local function getValue4DataType(buffer, dataType)
     if dataType == 2 then
         return buffer:float()
     elseif dataType == 3 then
@@ -30,23 +24,37 @@ function getValue(buffer, dataType, canId)
     elseif dataType == 12 then
         return buffer(0, 4):uint()
     elseif dataType == 15 then
-        if canId == 1200 then
-            -- utc
-            return buffer(0, 1):uint() * 3600 + (buffer(1, 1):uint() * 60) + buffer(2, 1):uint()
-        end
-        return buffer(0, 4):uint()
+        return buffer(0, 4)
     elseif dataType == 16 then
         return buffer:uint()
     elseif dataType == 30 then
-        return buffer:uint() % 1E7 -- todo correct ??
+        return buffer:uint()
     elseif dataType == 31 then
-        return buffer:uint() / 1E7 -- todo correct ??
+        return buffer:uint()
     else
         return buffer
     end
 end
 
-canId2TextTable = {
+-- format value according to https://www.stockflightsystems.com/tl_files/downloads/canaerospace/canas_17.pdf
+-- WIP: to be extended !
+local function getValue4CanId(value, canId)
+    if canId == 1036 or canId == 1037 then
+        return value / 1E7 .. " deg"
+    elseif canId == 1200 then
+        return value(0, 1):uint() .. ":" .. value(1, 1):uint() .. ":" .. string.format("%02d", value(2, 1):uint()) .. " utc"
+    elseif canId == 1206 then
+        return value(0, 1):uint() .. "." .. value(1, 1):uint() .. "." .. value(2, 1):uint() .. value(3, 1):uint() .. " date"
+    else
+        return value
+    end
+end
+
+function getValue(buffer, dataType, canId)
+    return getValue4CanId(getValue4DataType(buffer, dataType), canId)
+end
+
+local canId2TextTable = {
     [300] = "Body Longitudinal Acceleration",
     [301] = "Body Lateral Acceleration",
     [302] = "Body Normal Acceleration",
@@ -553,3 +561,12 @@ canId2TextTable = {
     [1205] = "Lateral Center Of Gravity",
     [1206] = "Date"
 }
+
+-- get can id text according to https://www.stockflightsystems.com/tl_files/downloads/canaerospace/canas_17.pdf
+function canId2Text(canId)
+    if canId2TextTable[canId] == nil then
+        return ""
+    else
+        return "(" .. canId2TextTable[canId] .. ")"
+    end
+end
