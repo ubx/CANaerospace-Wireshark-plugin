@@ -36,7 +36,7 @@ function canas_proto.dissector(buffer, pinfo, tree)
     -- CAN part
     subtree = subtree:add(buffer(0, 8), "CAN")
     local canId = buffer(0, 3):le_int()
-    subtree:add(header_fields.type, canId)
+    subtree:add(header_fields.type, buffer(0, 3), canId)
     subtree:add(buffer(3, 1), "flags, xtd: " .. buffer(3, 1):bitfield(0, 1) .. " rtr: " .. buffer(3, 1):bitfield(1, 1) .. " err: " .. buffer(3, 1):bitfield(2, 1))
     subtree:add(buffer(4, 1), "len: " .. buffer(4, 1))
     subtree:add(buffer(5, 3), "reserved: " .. buffer(3, 3))
