@@ -20,13 +20,6 @@
 
 utils=require("utils")
 
-RUN_TESTS = os.getenv("TEST")
-
-if RUN_TESTS then
-    _G.debug = require("debug")
-    local luacov = require("luacov")
-end
-
 canas_proto = Proto("canas", "CANaerospace Protocol")
 
 -- todo -- add fields for filters
@@ -58,11 +51,8 @@ function canas_proto.dissector(buffer, pinfo, tree)
     subtree:add(buffer(9, 1), "Data Type: " .. dataType)
     subtree:add(buffer(10, 1), "Service Code: " .. buffer(10, 1):uint())
     subtree:add(buffer(11, 1), "Message Code: " .. buffer(11, 1):uint())
-    -- todo -- decode message according to https://www.stockflightsystems.com/tl_files/downloads/canaerospace/canas_17.pdf
     subtree:add(buffer(12, 4), "Data: " .. getValue(buffer(12,4), dataType, canId))
 end
-
-
 
 dissector_table = DissectorTable.get("sll.ltype")
 dissector_table:add(12, canas_proto)
