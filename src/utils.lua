@@ -54,7 +54,9 @@ function getValue(buffer, dataType, canId)
     return getValue4CanId(getValue4DataType(buffer, dataType), canId)
 end
 
-local canId2TextTable = {
+-- default identifier, see https://www.stockflightsystems.com/tl_files/downloads/canaerospace/canas_17.pdf
+-- WIP: to be completed !
+defaultIdentifierTable = {
     [300] = "Body Longitudinal Acceleration",
     [301] = "Body Lateral Acceleration",
     [302] = "Body Normal Acceleration",
@@ -561,12 +563,3 @@ local canId2TextTable = {
     [1205] = "Lateral Center Of Gravity",
     [1206] = "Date"
 }
-
--- get can id text according to https://www.stockflightsystems.com/tl_files/downloads/canaerospace/canas_17.pdf
-function canId2Text(canId)
-    if canId2TextTable[canId] == nil then
-        return ""
-    else
-        return "(" .. canId2TextTable[canId] .. ")"
-    end
-end
