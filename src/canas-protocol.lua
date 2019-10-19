@@ -18,11 +18,15 @@
 --
 -- Run with: wireshark -X lua_script:canas-protocol.lua
 
-utils=require("utils")
+utils = require("utils")
 
 canas_proto = Proto("canas", "CANaerospace Protocol")
 
--- todo -- add fields for filters
+-- Proto header fields
+local header_fields = {
+    type = ProtoField.uint24("canas.canid", "Can Id", base.DEC, defaultIdentifierTable)
+}
+canas_proto.fields = header_fields
 
 -- create a function to dissect it
 function canas_proto.dissector(buffer, pinfo, tree)
@@ -32,19 +36,19 @@ function canas_proto.dissector(buffer, pinfo, tree)
     -- CAN part
     subtree = subtree:add(buffer(0, 8), "CAN")
     local canId = buffer(0, 3):le_int()
-    subtree:add(buffer(0, 3), "CAN-ID: " .. canId, canId2Text(canId))
-    subtree:add(buffer(3, 1), "flags, xtd: " .. buffer(3, 1):bitfield(0,1) .." rtr: " .. buffer(3, 1):bitfield(1,1).." err: " .. buffer(3, 1):bitfield(2,1))
+    subtree:add(header_fields.type, canId)
+    subtree:add(buffer(3, 1), "flags, xtd: " .. buffer(3, 1):bitfield(0, 1) .. " rtr: " .. buffer(3, 1):bitfield(1, 1) .. " err: " .. buffer(3, 1):bitfield(2, 1))
     subtree:add(buffer(4, 1), "len: " .. buffer(4, 1))
     subtree:add(buffer(5, 3), "reserved: " .. buffer(3, 3))
 
     -- CANaerospace part
     subtree = subtree:add(buffer(8, 8), "aerospace")
-    subtree:add(buffer(8, 1), "Node-ID: " .. buffer(8, 1):uint())
+    subtree:add(buffer(8, 1), "Node Id: " .. buffer(8, 1):uint())
     local dataType = buffer(9, 1):uint()
     subtree:add(buffer(9, 1), "Data Type: " .. dataType)
     subtree:add(buffer(10, 1), "Service Code: " .. buffer(10, 1):uint())
     subtree:add(buffer(11, 1), "Message Code: " .. buffer(11, 1):uint())
-    subtree:add(buffer(12, 4), "Data: " .. getValue(buffer(12,4), dataType, canId))
+    subtree:add(buffer(12, 4), "Data: " .. getValue(buffer(12, 4), dataType, canId))
 end
 
 dissector_table = DissectorTable.get("sll.ltype")
