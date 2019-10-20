@@ -52,6 +52,11 @@ function canas_proto.dissector(buffer, pinfo, tree)
     subtree:add(header_fields.servicecode, buffer(10, 1), buffer(10, 1):uint())
     subtree:add(buffer(11, 1), "Message Code: " .. buffer(11, 1):uint())
     subtree:add(buffer(12, 4), "Data: " .. getValue(buffer(12, 4), dataType, canId))
+    info = defaultIdentifierTable[canId]
+    if info == nil then
+        info = "Identifier " .. canId
+    end
+    pinfo.cols.info = info
 end
 
 dissector_table = DissectorTable.get("sll.ltype")
