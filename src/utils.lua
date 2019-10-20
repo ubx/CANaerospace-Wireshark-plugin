@@ -563,3 +563,74 @@ defaultIdentifierTable = {
     [1205] = "Lateral Center Of Gravity",
     [1206] = "Date"
 }
+
+-- CANAerospace node_id
+-- WIP: to be extended/changed !
+defaultNodeIdTable = {
+    [01] = "AHRS",
+    [02] = "ADC",
+    [03] = "VHF1",
+    [04] = "VHF2",
+    [05] = "NAVILS1",
+    [06] = "NAVILS2",
+    [07] = "ATC",
+    [08] = "ADF",
+
+    [10] = "GPS",
+    [11] = "DME",
+    [12] = "EMS",
+    [13] = "ETS",
+    [14] = "ES",
+    [15] = "WCS"
+}
+
+-- Data types
+dataTypeTable = {
+    [0x00] = "NODATA",
+    [0x01] = "ERROR",
+    [0x02] = "FLOAT",
+    [0x03] = "LONG",
+    [0x04] = "ULONG",
+    [0x05] = "BLONG",
+    [0x06] = "SHORT",
+    [0x07] = "USHORT",
+    [0x08] = "BSHORT",
+    [0x09] = "CHAR",
+    [0x0A] = "UCHAR",
+    [0x0B] = "BCHAR",
+    [0x0C] = "SHORT2",
+    [0x0D] = "USHORT2",
+    [0x0E] = "BSHORT2",
+    [0x0F] = "CHAR4",
+    [0x10] = "UCHAR4",
+    [0x11] = "BCHAR4",
+    [0x12] = "CHAR2",
+    [0x13] = "UCHAR2",
+    [0x14] = "BCHAR2",
+    [0x15] = "MEMID",
+    [0x16] = "CHKSUM",
+    [0x17] = "ACHAR",
+    [0x18] = "ACHAR2",
+    [0x19] = "ACHAR4",
+    [0x1A] = "CHAR3",
+    [0x1B] = "UCHAR3",
+    [0x1C] = "BCHAR3",
+    [0x1D] = "ACHAR3",
+    [0x1E] = "DOUBLEH",
+    [0x1F] = "DOUBLEL",
+    [0x20] = "RESVD",
+    [0x64] = "UDEF"
+}
+
+-- CANAerospace service_code
+serviceCodeTable = {
+    [0x00] = "SC0",
+    [0x01] = "SC1",
+    [0x02] = "SC2",
+    [0x03] = "SC3",
+    [0x04] = "SC4",
+    [0x05] = "SC5",
+    [0x06] = "SC6",
+    [0x07] = "SC7",
+    [0x08] = "SC8"
+}

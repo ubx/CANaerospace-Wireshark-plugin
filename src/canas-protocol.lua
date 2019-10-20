@@ -24,7 +24,10 @@ canas_proto = Proto("canas", "CANaerospace Protocol")
 
 -- Proto header fields
 local header_fields = {
-    type = ProtoField.uint24("canas.canid", "Can Id", base.DEC, defaultIdentifierTable)
+    canid = ProtoField.uint24("canas.canid", "Can Id", base.DEC, defaultIdentifierTable),
+    nodeid = ProtoField.uint8("canas.nodeid", "Node Id", base.DEC, defaultNodeIdTable),
+    datatype = ProtoField.uint8("canas.datatype", "Data Type", base.DEC, dataTypeTable),
+    servicecode = ProtoField.uint8("canas.servicecode", "Service Code", base.DEC, serviceCodeTable)
 }
 canas_proto.fields = header_fields
 
@@ -36,17 +39,17 @@ function canas_proto.dissector(buffer, pinfo, tree)
     -- CAN part
     subtree = subtree:add(buffer(0, 8), "CAN")
     local canId = buffer(0, 3):le_int()
-    subtree:add(header_fields.type, buffer(0, 3), canId)
+    subtree:add(header_fields.canid, buffer(0, 3), canId)
     subtree:add(buffer(3, 1), "flags, xtd: " .. buffer(3, 1):bitfield(0, 1) .. " rtr: " .. buffer(3, 1):bitfield(1, 1) .. " err: " .. buffer(3, 1):bitfield(2, 1))
     subtree:add(buffer(4, 1), "len: " .. buffer(4, 1))
     subtree:add(buffer(5, 3), "reserved: " .. buffer(3, 3))
 
     -- CANaerospace part
     subtree = subtree:add(buffer(8, 8), "aerospace")
-    subtree:add(buffer(8, 1), "Node Id: " .. buffer(8, 1):uint())
+    subtree:add(header_fields.nodeid, buffer(8, 1), buffer(8, 1):uint())
     local dataType = buffer(9, 1):uint()
-    subtree:add(buffer(9, 1), "Data Type: " .. dataType)
-    subtree:add(buffer(10, 1), "Service Code: " .. buffer(10, 1):uint())
+    subtree:add(header_fields.datatype, buffer(9, 1), dataType)
+    subtree:add(header_fields.servicecode, buffer(10, 1), buffer(10, 1):uint())
     subtree:add(buffer(11, 1), "Message Code: " .. buffer(11, 1):uint())
     subtree:add(buffer(12, 4), "Data: " .. getValue(buffer(12, 4), dataType, canId))
 end
