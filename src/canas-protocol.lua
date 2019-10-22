@@ -18,6 +18,15 @@
 --
 -- Run with: wireshark -X lua_script:canas-protocol.lua
 
+
+-- Display version information for Wireshark
+local plugin_info = {
+    version = "1.0.0",
+    author = "Andreas Lüthi",
+    repository = "https://github.com/ubx/CANaerospace-Wireshark-plugin"
+}
+set_plugin_info(plugin_info)
+
 utils = require("utils")
 
 canas_proto = Proto("canas", "CANaerospace Protocol")
