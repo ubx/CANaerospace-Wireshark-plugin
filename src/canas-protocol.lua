@@ -27,7 +27,7 @@ local plugin_info = {
 }
 set_plugin_info(plugin_info)
 
-utils = require("utils")
+local utils = require("utils")
 
 canas_proto = Proto("canas", "CANaerospace Protocol")
 
