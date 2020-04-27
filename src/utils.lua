@@ -44,7 +44,7 @@ local function getValue4CanId(value, canId)
     elseif canId == 1200 then
         return value(0, 1):uint() .. ":" .. value(1, 1):uint() .. ":" .. string.format("%02d", value(2, 1):uint()) .. " utc"
     elseif canId == 1206 then
-        return value(0, 1):uint() .. "." .. value(1, 1):uint() .. "." .. value(2, 1):uint() .. value(3, 1):uint() .. " date"
+        return value(0, 1):uint() .. "." .. value(1, 1):uint() + 1 .. "." .. value(2, 1):uint() .. value(3, 1):uint() .. " date"
     else
         return value
     end
