@@ -97,6 +97,11 @@ defaultIdentifierTable = {
     [337] = "Body Longitudinal Velocity",
     [338] = "Body Lateral Velocity",
     [339] = "Total Pressure",
+    [340] = "Flaps position",
+
+    [342] = "Speed brake position",
+    [348] = "TEK altitude rate",
+    [345] = "Vertical speed of the airmass",
 
     [400] = "Pitch Control Position",
     [401] = "Roll Control Position",
