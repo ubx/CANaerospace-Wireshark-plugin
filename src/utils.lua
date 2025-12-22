@@ -14,6 +14,8 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>
 
+local utils = {}
+
 -- interpret buffer according to https://www.stockflightsystems.com/tl_files/downloads/canaerospace/canas_17.pdf
 -- WIP: to be extended !
 local function getValue4DataType(buffer, dataType)
@@ -50,13 +52,13 @@ local function getValue4CanId(value, canId)
     end
 end
 
-function getValue(buffer, dataType, canId)
+function utils.getValue(buffer, dataType, canId)
     return getValue4CanId(getValue4DataType(buffer, dataType), canId)
 end
 
 -- default identifier, see https://www.stockflightsystems.com/tl_files/downloads/canaerospace/canas_17.pdf
 -- WIP: to be completed !
-defaultIdentifierTable = {
+utils.defaultIdentifierTable = {
     [300] = "Body Longitudinal Acceleration",
     [301] = "Body Lateral Acceleration",
     [302] = "Body Normal Acceleration",
@@ -571,7 +573,7 @@ defaultIdentifierTable = {
 
 -- CANAerospace node_id
 -- WIP: to be extended/changed !
-defaultNodeIdTable = {
+utils.defaultNodeIdTable = {
     [01] = "AHRS",
     [02] = "ADC",
     [03] = "VHF1",
@@ -590,7 +592,7 @@ defaultNodeIdTable = {
 }
 
 -- Data types
-dataTypeTable = {
+utils.dataTypeTable = {
     [0x00] = "NODATA",
     [0x01] = "ERROR",
     [0x02] = "FLOAT",
@@ -628,7 +630,7 @@ dataTypeTable = {
 }
 
 -- CANAerospace service_code
-serviceCodeTable = {
+utils.serviceCodeTable = {
     [0x00] = "SC0",
     [0x01] = "SC1",
     [0x02] = "SC2",
@@ -639,3 +641,5 @@ serviceCodeTable = {
     [0x07] = "SC7",
     [0x08] = "SC8"
 }
+
+return utils
