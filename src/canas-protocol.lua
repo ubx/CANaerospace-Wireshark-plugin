@@ -27,7 +27,15 @@ local plugin_info = {
 }
 set_plugin_info(plugin_info)
 
+-- Ensure we can load utils.lua if it's in the same directory as this script
+local script_path = debug.getinfo(1).source:match("@?(.*[\\/])")
+if script_path then
+    package.path = script_path .. "?.lua;" .. package.path
+end
+
 local utils = require("utils")
+
+local can_id_field = Field.new("can.id")
 
 local canas_proto = Proto("canas", "CANaerospace Protocol")
 
@@ -42,25 +50,56 @@ canas_proto.fields = header_fields
 
 -- create a function to dissect it
 function canas_proto.dissector(buffer, pinfo, tree)
+    print("[CANAS] Dissector called! Length: " .. buffer:len())
+    print("[CANAS] 000000000000000000000000000000000")
+
     pinfo.cols.protocol = "CANaerospace"
     local subtree = tree:add(canas_proto, buffer(), "CANaerospace Protocol Data")
 
-    -- CAN part
-    local can_subtree = subtree:add(buffer(0, 8), "CAN")
-    local canId = buffer(0, 3):le_int()
-    can_subtree:add(header_fields.canid, buffer(0, 3), canId)
-    can_subtree:add(buffer(3, 1), "flags, xtd: " .. buffer(3, 1):bitfield(0, 1) .. " rtr: " .. buffer(3, 1):bitfield(1, 1) .. " err: " .. buffer(3, 1):bitfield(2, 1))
-    can_subtree:add(buffer(4, 1), "len: " .. buffer(4, 1))
-    can_subtree:add(buffer(5, 3), "reserved: " .. buffer(3, 3))
+    local canId
+    local aerospace_buffer
+    local aerospace_offset
+
+    if buffer:len() >= 16 then
+        -- Assume full CAN frame (e.g. from Linux SLL or wtap.CANRAW)
+        -- Bytes 0-7: CAN header (if it includes it, though SLL does)
+        -- Actually, many CAN captures only pass the payload.
+        -- If length is exactly 16, it might be the Linux SocketCAN capture format.
+        local can_subtree = subtree:add(buffer(0, 8), "CAN")
+        canId = buffer(0, 3):le_int()
+        can_subtree:add(header_fields.canid, buffer(0, 3), canId)
+        can_subtree:add(buffer(3, 1), "flags, xtd: " .. buffer(3, 1):bitfield(0, 1) .. " rtr: " .. buffer(3, 1):bitfield(1, 1) .. " err: " .. buffer(3, 1):bitfield(2, 1))
+        can_subtree:add(buffer(4, 1), "len: " .. buffer(4, 1))
+        can_subtree:add(buffer(5, 3), "reserved: " .. buffer(5, 3))
+        
+        aerospace_buffer = buffer(8, 8)
+        aerospace_offset = 8
+    else
+        -- Assume CAN payload (e.g. from can.subdissector)
+        -- We need to get the CAN ID from the parent dissector
+        local can_id_info = can_id_field()
+        if can_id_info then
+            canId = can_id_info.value
+        else
+            canId = 0 -- Default if not found
+        end
+        
+        aerospace_buffer = buffer(0, buffer:len())
+        aerospace_offset = 0
+    end
 
     -- CANaerospace part
-    local aerospace_subtree = subtree:add(buffer(8, 8), "aerospace")
-    aerospace_subtree:add(header_fields.nodeid, buffer(8, 1), buffer(8, 1):uint())
-    local dataType = buffer(9, 1):uint()
-    aerospace_subtree:add(header_fields.datatype, buffer(9, 1), dataType)
-    aerospace_subtree:add(header_fields.servicecode, buffer(10, 1), buffer(10, 1):uint())
-    aerospace_subtree:add(buffer(11, 1), "Message Code: " .. buffer(11, 1):uint())
-    aerospace_subtree:add(buffer(12, 4), "Data: " .. utils.getValue(buffer(12, 4), dataType, canId))
+    local aerospace_subtree = subtree:add(aerospace_buffer, "aerospace")
+    aerospace_subtree:add(header_fields.nodeid, aerospace_buffer(0, 1), aerospace_buffer(0, 1):uint())
+    local dataType = aerospace_buffer(1, 1):uint()
+    aerospace_subtree:add(header_fields.datatype, aerospace_buffer(1, 1), dataType)
+    aerospace_subtree:add(header_fields.servicecode, aerospace_buffer(2, 1), aerospace_buffer(2, 1):uint())
+    aerospace_subtree:add(aerospace_buffer(3, 1), "Message Code: " .. aerospace_buffer(3, 1):uint())
+    
+    if aerospace_buffer:len() >= 8 then
+        aerospace_subtree:add(aerospace_buffer(4, 4), "Data: " .. utils.getValue(aerospace_buffer(4, 4), dataType, canId))
+    end
+
     local info = utils.defaultIdentifierTable[canId]
     if info == nil then
         info = "Identifier " .. canId
@@ -68,5 +107,35 @@ function canas_proto.dissector(buffer, pinfo, tree)
     pinfo.cols.info = info
 end
 
-local dissector_table = DissectorTable.get("sll.ltype")
-dissector_table:add(12, canas_proto)
+local sll_dissector_table = DissectorTable.get("sll.ltype")
+if sll_dissector_table then
+    pcall(function() sll_dissector_table:add(12, canas_proto) end)
+end
+
+local can_dissector_table = DissectorTable.get("can.subdissector")
+if can_dissector_table then
+    pcall(function() can_dissector_table:add_for_decode_as(canas_proto) end)
+end
+
+-- Also register for standard CAN ID based dissection if possible
+-- Some Wireshark versions use "can.id"
+local can_id_table = DissectorTable.get("can.id")
+if can_id_table then
+    -- Some Wireshark versions don't support add_for_decode_as for can.id.
+    -- We'll try to add it for a few common CANaerospace IDs instead.
+    local common_ids = {300, 301, 302, 303, 304, 305, 1200}
+    for _, id in ipairs(common_ids) do
+        pcall(function() can_id_table:add(id, canas_proto) end)
+    end
+end
+
+-- Try to register for Link Layer types if they are used directly
+local wtap_table = DissectorTable.get("wtap_encap")
+if wtap_table then
+    if wtap and wtap.CANRAW then
+        pcall(function() wtap_table:add(wtap.CANRAW, canas_proto) end)
+    end
+    if wtap and wtap.CAN_ETH then
+        pcall(function() wtap_table:add(wtap.CAN_ETH, canas_proto) end)
+    end
+end
