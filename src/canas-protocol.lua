@@ -51,7 +51,6 @@ canas_proto.fields = header_fields
 -- create a function to dissect it
 function canas_proto.dissector(buffer, pinfo, tree)
     print("[CANAS] Dissector called! Length: " .. buffer:len())
-    print("[CANAS] 000000000000000000000000000000000")
 
     pinfo.cols.protocol = "CANaerospace"
     local subtree = tree:add(canas_proto, buffer(), "CANaerospace Protocol Data")
@@ -71,7 +70,7 @@ function canas_proto.dissector(buffer, pinfo, tree)
         can_subtree:add(buffer(3, 1), "flags, xtd: " .. buffer(3, 1):bitfield(0, 1) .. " rtr: " .. buffer(3, 1):bitfield(1, 1) .. " err: " .. buffer(3, 1):bitfield(2, 1))
         can_subtree:add(buffer(4, 1), "len: " .. buffer(4, 1))
         can_subtree:add(buffer(5, 3), "reserved: " .. buffer(5, 3))
-        
+
         aerospace_buffer = buffer(8, 8)
         aerospace_offset = 8
     else
@@ -83,7 +82,7 @@ function canas_proto.dissector(buffer, pinfo, tree)
         else
             canId = 0 -- Default if not found
         end
-        
+
         aerospace_buffer = buffer(0, buffer:len())
         aerospace_offset = 0
     end
@@ -95,7 +94,7 @@ function canas_proto.dissector(buffer, pinfo, tree)
     aerospace_subtree:add(header_fields.datatype, aerospace_buffer(1, 1), dataType)
     aerospace_subtree:add(header_fields.servicecode, aerospace_buffer(2, 1), aerospace_buffer(2, 1):uint())
     aerospace_subtree:add(aerospace_buffer(3, 1), "Message Code: " .. aerospace_buffer(3, 1):uint())
-    
+
     if aerospace_buffer:len() >= 8 then
         aerospace_subtree:add(aerospace_buffer(4, 4), "Data: " .. utils.getValue(aerospace_buffer(4, 4), dataType, canId))
     end
@@ -109,12 +108,16 @@ end
 
 local sll_dissector_table = DissectorTable.get("sll.ltype")
 if sll_dissector_table then
-    pcall(function() sll_dissector_table:add(12, canas_proto) end)
+    pcall(function()
+        sll_dissector_table:add(12, canas_proto)
+    end)
 end
 
 local can_dissector_table = DissectorTable.get("can.subdissector")
 if can_dissector_table then
-    pcall(function() can_dissector_table:add_for_decode_as(canas_proto) end)
+    pcall(function()
+        can_dissector_table:add_for_decode_as(canas_proto)
+    end)
 end
 
 -- Also register for standard CAN ID based dissection if possible
@@ -122,10 +125,11 @@ end
 local can_id_table = DissectorTable.get("can.id")
 if can_id_table then
     -- Some Wireshark versions don't support add_for_decode_as for can.id.
-    -- We'll try to add it for a few common CANaerospace IDs instead.
-    local common_ids = {300, 301, 302, 303, 304, 305, 1200}
-    for _, id in ipairs(common_ids) do
-        pcall(function() can_id_table:add(id, canas_proto) end)
+    -- We'll add it for all CANaerospace IDs defined in utils.defaultIdentifierTable.
+    for id, _ in pairs(utils.defaultIdentifierTable) do
+        pcall(function()
+            can_id_table:add(id, canas_proto)
+        end)
     end
 end
 
@@ -133,9 +137,13 @@ end
 local wtap_table = DissectorTable.get("wtap_encap")
 if wtap_table then
     if wtap and wtap.CANRAW then
-        pcall(function() wtap_table:add(wtap.CANRAW, canas_proto) end)
+        pcall(function()
+            wtap_table:add(wtap.CANRAW, canas_proto)
+        end)
     end
     if wtap and wtap.CAN_ETH then
-        pcall(function() wtap_table:add(wtap.CAN_ETH, canas_proto) end)
+        pcall(function()
+            wtap_table:add(wtap.CAN_ETH, canas_proto)
+        end)
     end
 end
