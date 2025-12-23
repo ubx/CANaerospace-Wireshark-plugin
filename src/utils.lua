@@ -38,15 +38,24 @@ local function getValue4DataType(buffer, dataType)
     end
 end
 
+local function formatSpeed(value) return value .. " m/s" end
+local function formatDegree(value) return value / 1E7 .. " deg" end
+
 -- format value according to https://www.stockflightsystems.com/tl_files/downloads/canaerospace/canas_17.pdf
 -- WIP: to be extended !
+local canIdFormattingTable = {
+    [315]  = formatSpeed,
+    [316]  = formatSpeed,
+    [1036] = formatDegree,
+    [1037] = formatDegree,
+    [1200] = function(value) return value(0, 1):uint() .. ":" .. value(1, 1):uint() .. ":" .. string.format("%02d", value(2, 1):uint()) .. " utc" end,
+    [1206] = function(value) return value(0, 1):uint() .. "." .. value(1, 1):uint() + 1 .. "." .. value(2, 1):uint() .. value(3, 1):uint() .. " date" end
+}
+
 local function getValue4CanId(value, canId)
-    if canId == 1036 or canId == 1037 then
-        return value / 1E7 .. " deg"
-    elseif canId == 1200 then
-        return value(0, 1):uint() .. ":" .. value(1, 1):uint() .. ":" .. string.format("%02d", value(2, 1):uint()) .. " utc"
-    elseif canId == 1206 then
-        return value(0, 1):uint() .. "." .. value(1, 1):uint() + 1 .. "." .. value(2, 1):uint() .. value(3, 1):uint() .. " date"
+    local formatFunc = canIdFormattingTable[canId]
+    if formatFunc then
+        return formatFunc(value)
     else
         return value
     end
