@@ -19,20 +19,56 @@ local utils = {}
 -- interpret buffer according to https://www.stockflightsystems.com/tl_files/downloads/canaerospace/canas_17.pdf
 -- WIP: to be extended !
 local function getValue4DataType(buffer, dataType)
-    if dataType == 2 then
+    if buffer:len() < 4 then return buffer end
+    
+    if dataType == 2 then -- FLOAT
         return buffer:float()
-    elseif dataType == 3 then
+    elseif dataType == 3 then -- LONG
         return buffer:int()
-    elseif dataType == 12 then
-        return buffer(0, 4):uint()
-    elseif dataType == 15 then
-        return buffer(0, 4)
-    elseif dataType == 16 then
+    elseif dataType == 4 then -- ULONG
         return buffer:uint()
-    elseif dataType == 30 then
-        return buffer:uint()
-    elseif dataType == 31 then
-        return buffer:uint()
+    elseif dataType == 5 then -- BLONG
+        return string.format("0x%08X", buffer:uint())
+    elseif dataType == 6 then -- SHORT
+        return buffer(0, 2):int()
+    elseif dataType == 7 then -- USHORT
+        return buffer(0, 2):uint()
+    elseif dataType == 8 then -- BSHORT
+        return string.format("0x%04X", buffer(0, 2):uint())
+    elseif dataType == 9 then -- CHAR
+        return buffer(0, 1):int()
+    elseif dataType == 10 then -- UCHAR
+        return buffer(0, 1):uint()
+    elseif dataType == 11 then -- BCHAR
+        return string.format("0x%02X", buffer(0, 1):uint())
+    elseif dataType == 12 then -- SHORT2
+        return buffer(0, 2):int() .. ", " .. buffer(2, 2):int()
+    elseif dataType == 13 then -- USHORT2
+        return buffer(0, 2):uint() .. ", " .. buffer(2, 2):uint()
+    elseif dataType == 14 then -- BSHORT2
+        return string.format("0x%04X, 0x%04X", buffer(0, 2):uint(), buffer(2, 2):uint())
+    elseif dataType == 15 then -- CHAR4
+        return buffer(0, 1):int() .. ", " .. buffer(1, 1):int() .. ", " .. buffer(2, 1):int() .. ", " .. buffer(3, 1):int()
+    elseif dataType == 16 then -- UCHAR4
+        return buffer(0, 1):uint() .. ", " .. buffer(1, 1):uint() .. ", " .. buffer(2, 1):uint() .. ", " .. buffer(3, 1):uint()
+    elseif dataType == 17 then -- BCHAR4
+        return string.format("0x%02X, 0x%02X, 0x%02X, 0x%02X", buffer(0, 1):uint(), buffer(1, 1):uint(), buffer(2, 1):uint(), buffer(3, 1):uint())
+    elseif dataType == 18 then -- CHAR2
+        return buffer(0, 1):int() .. ", " .. buffer(1, 1):int()
+    elseif dataType == 19 then -- UCHAR2
+        return buffer(0, 1):uint() .. ", " .. buffer(1, 1):uint()
+    elseif dataType == 20 then -- BCHAR2
+        return string.format("0x%02X, 0x%02X", buffer(0, 1):uint(), buffer(1, 1):uint())
+    elseif dataType == 21 then -- MEMID
+        return "MEMID: " .. buffer:uint()
+    elseif dataType == 22 then -- CHKSUM
+        return "CHKSUM: " .. buffer:uint()
+    elseif dataType == 23 then -- ACHAR
+        return "'" .. buffer(0, 1):string() .. "'"
+    elseif dataType == 30 then -- DOUBLEH
+        return "DOUBLEH: " .. buffer:uint()
+    elseif dataType == 31 then -- DOUBLEL
+        return "DOUBLEL: " .. buffer:uint()
     else
         return buffer
     end
@@ -423,11 +459,15 @@ utils.defaultIdentifierTable = {
     [337] = "Body Longitudinal Velocity",
     [338] = "Body Lateral Velocity",
     [339] = "Total Pressure [hPa]",
-    [340] = "Flaps position",
-
-    [342] = "Speed brake position",
-    [348] = "TEK altitude rate",
-    [345] = "Vertical speed of the airmass",
+    [340] = "Flaps Position",
+    [341] = "Slats Position",
+    [342] = "Speed Brake Position",
+    [343] = "Spoiler Position",
+    [344] = "Total Velocity",
+    [345] = "Vertical Speed Of The Airmass",
+    [346] = "Port Horizontal Tail Angle Of Attack",
+    [347] = "Starboard Horizontal Tail Angle Of Attack",
+    [348] = "TEK Altitude Rate",
 
     [400] = "Pitch Control Position",
     [401] = "Roll Control Position",
@@ -520,10 +560,10 @@ utils.defaultIdentifierTable = {
     [545] = "Engine 2 Oil Quantity Ecs Channel A",
     [546] = "Engine 3 Oil Quantity Ecs Channel A",
     [547] = "Engine 4 Oil Quantity Ecs Channel A",
-    [548] = "Engine 1 Cooland Temperature Ecs Channel A",
-    [549] = "Engine 2 Cooland Temperature Ecs Channel A",
-    [550] = "Engine 3 Cooland Temperature Ecs Channel A",
-    [551] = "Engine 4 Cooland Temperature Ecs Channel A",
+    [548] = "Engine 1 Coolant Temperature Ecs Channel A",
+    [549] = "Engine 2 Coolant Temperature Ecs Channel A",
+    [550] = "Engine 3 Coolant Temperature Ecs Channel A",
+    [551] = "Engine 4 Coolant Temperature Ecs Channel A",
     [552] = "Engine 1 Power Rating Ecs Channel A",
     [553] = "Engine 2 Power Rating Ecs Channel A",
     [554] = "Engine 3 Power Rating Ecs Channel A",
@@ -668,6 +708,14 @@ utils.defaultIdentifierTable = {
     [733] = "Gearbox 6 Oil Quantity",
     [734] = "Gearbox 7 Oil Quantity",
     [735] = "Gearbox 8 Oil Quantity",
+    [736] = "Gearbox 1 Status",
+    [737] = "Gearbox 2 Status",
+    [738] = "Gearbox 3 Status",
+    [739] = "Gearbox 4 Status",
+    [740] = "Gearbox 5 Status",
+    [741] = "Gearbox 6 Status",
+    [742] = "Gearbox 7 Status",
+    [743] = "Gearbox 8 Status",
     [800] = "Hydraulic System 1 Pressure",
     [801] = "Hydraulic System 2 Pressure",
     [802] = "Hydraulic System 3 Pressure",
@@ -829,10 +877,10 @@ utils.defaultIdentifierTable = {
     [1084] = "Adf 2 Bearing",
     [1085] = "Adf 3 Bearing",
     [1086] = "Adf 4 Bearing",
-    [1087] = "Ils 1 Localize Deviation",
-    [1088] = "Ils 2 Localize Deviation",
-    [1089] = "Ils 3 Localize Deviation",
-    [1090] = "Ils 4 Localize Deviation",
+    [1087] = "Ils 1 Localizer Deviation",
+    [1088] = "Ils 2 Localizer Deviation",
+    [1089] = "Ils 3 Localizer Deviation",
+    [1090] = "Ils 4 Localizer Deviation",
     [1091] = "Ils 1 Glideslope Deviation",
     [1092] = "Ils 2 Glideslope Deviation",
     [1093] = "Ils 3 Glideslope Deviation",
@@ -886,13 +934,31 @@ utils.defaultIdentifierTable = {
     [1182] = "Landing Gear 2 Brake Pad Thickness",
     [1183] = "Landing Gear 3 Brake Pad Thickness",
     [1184] = "Landing Gear 4 Brake Pad Thickness",
+    [1185] = "Landing Gear 1 Status",
+    [1186] = "Landing Gear 2 Status",
+    [1187] = "Landing Gear 3 Status",
+    [1188] = "Landing Gear 4 Status",
+    [1189] = "Landing Gear 1 Extension Retraction Status",
+    [1190] = "Landing Gear 2 Extension Retraction Status",
+    [1191] = "Landing Gear 3 Extension Retraction Status",
+    [1192] = "Landing Gear 4 Extension Retraction Status",
+    [1193] = "Brake System 1 Pressure",
+    [1194] = "Brake System 2 Pressure",
+    [1195] = "Brake System 3 Pressure",
+    [1196] = "Brake System 4 Pressure",
+    [1197] = "Brake System 1 Status",
+    [1198] = "Brake System 2 Status",
+    [1199] = "Brake System 3 Status",
     [1200] = "Utc",
     [1201] = "Cabin Pressure",
     [1202] = "Cabin Altitude",
     [1203] = "Cabin Temperature",
     [1204] = "Longitudinal Center Of Gravity",
     [1205] = "Lateral Center Of Gravity",
-    [1206] = "Date"
+    [1206] = "Date",
+    [1207] = "Weight",
+    [1208] = "Fuel Weight",
+    [1209] = "Zero Fuel Weight"
 }
 
 -- CANAerospace node_id

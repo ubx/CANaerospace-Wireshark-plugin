@@ -35,14 +35,17 @@ end
 
 local utils = require("utils")
 
+-- Compatibility for bitwise operations
+local bit = bit or bit32
+
 local can_id_field = Field.new("can.id")
 
 local canas_proto = Proto("canas", "CANaerospace Protocol")
 
 -- Proto header fields
 local header_fields = {
-    canid = ProtoField.uint24("canas.canid", "Can Id", base.DEC, utils.defaultIdentifierTable),
-    nodeid = ProtoField.uint8("canas.nodeid", "Node Id", base.DEC, utils.defaultNodeIdTable),
+    canid = ProtoField.uint32("canas.canid", "CAN ID", base.DEC, utils.defaultIdentifierTable),
+    nodeid = ProtoField.uint8("canas.nodeid", "Node ID", base.DEC, utils.defaultNodeIdTable),
     datatype = ProtoField.uint8("canas.datatype", "Data Type", base.DEC, utils.dataTypeTable),
     servicecode = ProtoField.uint8("canas.servicecode", "Service Code", base.DEC, utils.serviceCodeTable)
 }
@@ -60,16 +63,25 @@ function canas_proto.dissector(buffer, pinfo, tree)
     local aerospace_offset
 
     if buffer:len() >= 16 then
-        -- Assume full CAN frame (e.g. from Linux SLL or wtap.CANRAW)
-        -- Bytes 0-7: CAN header (if it includes it, though SLL does)
-        -- Actually, many CAN captures only pass the payload.
-        -- If length is exactly 16, it might be the Linux SocketCAN capture format.
-        local can_subtree = subtree:add(buffer(0, 8), "CAN")
-        canId = buffer(0, 3):le_int()
-        can_subtree:add(header_fields.canid, buffer(0, 3), canId)
-        can_subtree:add(buffer(3, 1), "flags, xtd: " .. buffer(3, 1):bitfield(0, 1) .. " rtr: " .. buffer(3, 1):bitfield(1, 1) .. " err: " .. buffer(3, 1):bitfield(2, 1))
-        can_subtree:add(buffer(4, 1), "len: " .. buffer(4, 1))
-        can_subtree:add(buffer(5, 3), "reserved: " .. buffer(5, 3))
+        -- Assume full CAN frame (e.g. from Linux SocketCAN)
+        -- Bytes 0-3: CAN ID (little-endian, includes flags)
+        local can_subtree = subtree:add(buffer(0, 8), "CAN Frame")
+        local raw_canid = buffer(0, 4):le_uint()
+        canId = bit.band(raw_canid, 0x1FFFFFFF)
+        
+        can_subtree:add(header_fields.canid, buffer(0, 4), canId)
+        
+        local is_xtd = bit.band(raw_canid, 0x80000000) ~= 0
+        local is_rtr = bit.band(raw_canid, 0x40000000) ~= 0
+        local is_err = bit.band(raw_canid, 0x20000000) ~= 0
+        
+        can_subtree:add(buffer(0, 4), "Flags: " .. 
+            (is_xtd and "XTD " or "") .. 
+            (is_rtr and "RTR " or "") .. 
+            (is_err and "ERR" or ""))
+            
+        can_subtree:add(buffer(4, 1), "DLC: " .. buffer(4, 1):uint())
+        can_subtree:add(buffer(5, 3), "Reserved")
 
         aerospace_buffer = buffer(8, 8)
         aerospace_offset = 8
@@ -88,8 +100,17 @@ function canas_proto.dissector(buffer, pinfo, tree)
     end
 
     -- CANaerospace part
-    local aerospace_subtree = subtree:add(aerospace_buffer, "aerospace")
-    aerospace_subtree:add(header_fields.canid, buffer(0, 3), canId)
+    local aerospace_subtree = subtree:add(aerospace_buffer, "CANaerospace")
+    
+    if canId then
+        local canid_range = (aerospace_offset == 8) and buffer(0, 4) or buffer(0,0)
+        aerospace_subtree:add(header_fields.canid, canid_range, canId)
+    end
+
+    if aerospace_buffer:len() < 4 then
+        return
+    end
+
     aerospace_subtree:add(header_fields.nodeid, aerospace_buffer(0, 1), aerospace_buffer(0, 1):uint())
     local dataType = aerospace_buffer(1, 1):uint()
     aerospace_subtree:add(header_fields.datatype, aerospace_buffer(1, 1), dataType)
