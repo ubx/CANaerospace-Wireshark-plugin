@@ -41,7 +41,7 @@ end
 local function formatSpeed(value) return value .. " m/s" end
 local function formatDegree(value) return value / 1E7 .. " deg" end
 
--- format value according to https://www.stockflightsystems.com/tl_files/downloads/canaerospace/canas_17.pdf
+-- format value according to https://files.stockflightsystems.com/_5_CANaerospace/canas_17.pdf
 -- WIP: to be extended !
 local canIdFormattingTable = {
     [315]  = formatSpeed,
