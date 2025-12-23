@@ -50,7 +50,7 @@ canas_proto.fields = header_fields
 
 -- create a function to dissect it
 function canas_proto.dissector(buffer, pinfo, tree)
-    print("[CANAS] Dissector called! Length: " .. buffer:len())
+    --- print("[CANAS] Dissector called! Length: " .. buffer:len())
 
     pinfo.cols.protocol = "CANaerospace"
     local subtree = tree:add(canas_proto, buffer(), "CANaerospace Protocol Data")
@@ -89,6 +89,7 @@ function canas_proto.dissector(buffer, pinfo, tree)
 
     -- CANaerospace part
     local aerospace_subtree = subtree:add(aerospace_buffer, "aerospace")
+    aerospace_subtree:add(header_fields.canid, buffer(0, 3), canId)
     aerospace_subtree:add(header_fields.nodeid, aerospace_buffer(0, 1), aerospace_buffer(0, 1):uint())
     local dataType = aerospace_buffer(1, 1):uint()
     aerospace_subtree:add(header_fields.datatype, aerospace_buffer(1, 1), dataType)
