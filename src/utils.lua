@@ -88,6 +88,7 @@ local function formatCurrent(value) return value .. " A" end
 local function formatFrequency(value) return value .. " MHz" end
 local function formatFlow(value) return value .. " kg/h" end
 local function formatTorque(value) return value .. " Nm" end
+local function formatUnknown(value) return value .. " ???" end
 
 -- format value according to https://files.stockflightsystems.com/_5_CANaerospace/canas_17.pdf
 -- WIP: to be extended !
@@ -131,6 +132,8 @@ local canIdFormattingTable = {
     [340]  = formatPercent,
     [342]  = formatPercent,
     [348]  = formatSpeed,
+    [349]  = formatSpeed,
+    [350]  = formatPressure,
     [345]  = formatSpeed,
     [500]  = formatPercent,
     [501]  = formatPercent,
@@ -392,6 +395,8 @@ local canIdFormattingTable = {
     [1131] = formatSpeed,
     [1132] = formatSpeed,
     [1133] = formatAngle,
+    [1134] = formatUnknown,
+    [1135] = formatUnknown,
     [1177] = formatPressure,
     [1178] = formatPressure,
     [1179] = formatPressure,
@@ -400,7 +405,13 @@ local canIdFormattingTable = {
     [1201] = formatPressure,
     [1202] = formatAltitude,
     [1203] = formatTemperature,
-    [1206] = function(value) return value(0, 1):uint() .. "." .. value(1, 1):uint() + 1 .. "." .. value(2, 1):uint() .. value(3, 1):uint() .. " date" end
+    [1206] = function(value) return value(0, 1):uint() .. "." .. value(1, 1):uint() + 1 .. "." .. value(2, 1):uint() .. value(3, 1):uint() .. " date" end,
+
+    [1500] = formatTemperature,
+    [1501] = formatPressure,
+    [1502] = formatAcceleration,
+    [1503] = formatAcceleration,
+    [1504] = formatAcceleration
 }
 
 local function getValue4CanId(value, canId)
@@ -468,6 +479,9 @@ utils.defaultIdentifierTable = {
     [346] = "Port Horizontal Tail Angle Of Attack",
     [347] = "Starboard Horizontal Tail Angle Of Attack",
     [348] = "TEK Altitude Rate",
+    [349] = "TEK Altitude altitude",
+    [350] = "TEK pressure",
+    [354] = "Vertical speed of the airmass earth NED (negative is lift)",
 
     [400] = "Pitch Control Position",
     [401] = "Roll Control Position",
@@ -924,6 +938,8 @@ utils.defaultIdentifierTable = {
     [1131] = "True North Velocity",
     [1132] = "True Up Velocity",
     [1133] = "True Heading",
+    [1134] = "GPS geoid separation",
+    [1135] = "GPS SV info, one message per SV",
     [1175] = "Gear Lever Switches",
     [1176] = "Gear Lever Lights Wow Solenoid",
     [1177] = "Landing Gear 1 Tire Pressure",
@@ -958,7 +974,49 @@ utils.defaultIdentifierTable = {
     [1206] = "Date",
     [1207] = "Weight",
     [1208] = "Fuel Weight",
-    [1209] = "Zero Fuel Weight"
+    [1209] = "Zero Fuel Weight",
+
+    [1300] = "Flarm State",
+    [1301] = "FLAA AL 3",
+    [1302] = "FLAA AL 2",
+    [1303] = "FLAA AL 1",
+    [1304] = "FLAA AL 0",
+    [1305] = "ADSB State",
+
+    [1500] = "ISU Sensor board temperature",
+    [1501] = "ISU QFF estimate",
+    [1502] = "ISU AHRS accelerometer bias estimate body ax X",
+    [1503] = "ISU AHRS accelerometer bias estimate body ax Y",
+    [1504] = "ISU AHRS accelerometer bias estimate body ax Z",
+    [1506] = "State of IGC flight recorder unit",
+    [1507] = "IGC flight recorder command NODATA means PILOT EVENT",
+    [1509] = "Retractable engine position",
+    [1510] = "Vario meter mode 0=variometer 1=speedcommand",
+    [1511] = "Voice mute, 1=mutes",
+    [1512] = "Audio and Volume broadcast",
+    [1513] = "glide polar coefficients, servicecode is 0=A,B,2=C",
+    [1514] = "glide polar bugs",
+    [1515] = "glide polar mass dry and ballast [ushort kg*10^1]",
+    [1516] = "glide polar pilot mass (dry payload) -> empty-mass + pilot-mass + ballast-mass = takeoff-mass [ushort kg*10^1]",
+    [1517] = "wind override AS_UCHAR == 1 override",
+    [1518] = "Expected Lift, the classic McCrady value",
+    [1519] = "barometric altitude corretion in meters: altQNH = altSTD + <value> (SC=0: QNH, SC=1: QFE)",
+    [1520] = "magnetometer flux vector NORTH component in uT",
+    [1521] = "magnetometer flux vector EAST component in uT",
+    [1522] = "magnetometer flux vector DOWN component in uT",
+    [1530] = "voice message ID",
+    [1600] = "RU stream",
+    [1601] = "state of magneto calibration",
+    [1610] = "Route name, multiple zero terminated",
+    [1611] = "Route description, multiple zero terminated",
+    [1612] = "waypoint name, multiple zero terminated",
+    [1613] = "waypoint route segment type (reserved)",
+    [1614] = "waypoint latitude",
+    [1615] = "waypoint longitude",
+    [1616] = "waypoint altitude",
+    [1798] = "CPT6100 PRESS ID",
+    [1799] = "LAST USER DEFINED ID / NOD LAST",
+    [1800] = "who am i SC=0: S/N SC=1: P/N rate: 0.1 .. 1 hz"
 }
 
 -- CANAerospace node_id
