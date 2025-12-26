@@ -20,7 +20,7 @@ local utils = {}
 -- WIP: to be extended !
 local function getValue4DataType(buffer, dataType)
     if buffer:len() < 4 then return buffer end
-    
+
     if dataType == 2 then -- FLOAT
         return buffer:float()
     elseif dataType == 3 then -- LONG
@@ -1016,7 +1016,8 @@ utils.defaultIdentifierTable = {
     [1616] = "waypoint altitude",
     [1798] = "CPT6100 PRESS ID",
     [1799] = "LAST USER DEFINED ID / NOD LAST",
-    [1800] = "who am i SC=0: S/N SC=1: P/N rate: 0.1 .. 1 hz"
+    [1800] = "who am i SC=0: S/N SC=1: P/N rate: 0.1 .. 1 hz",
+    [1209] = "Zero Fuel Weight"
 }
 
 -- CANAerospace node_id
