@@ -20,55 +20,20 @@ local utils = {}
 -- WIP: to be extended !
 local function getValue4DataType(buffer, dataType)
     if buffer:len() < 4 then return buffer end
-
     if dataType == 2 then -- FLOAT
         return buffer:float()
-    elseif dataType == 3 then -- LONG
+    elseif dataType == 3 then
         return buffer:int()
-    elseif dataType == 4 then -- ULONG
+    elseif dataType == 12 then
+        return buffer(0, 4):uint()
+    elseif dataType == 15 then
+        return buffer(0, 4)
+    elseif dataType == 16 then
         return buffer:uint()
-    elseif dataType == 5 then -- BLONG
-        return string.format("0x%08X", buffer:uint())
-    elseif dataType == 6 then -- SHORT
-        return buffer(0, 2):int()
-    elseif dataType == 7 then -- USHORT
-        return buffer(0, 2):uint()
-    elseif dataType == 8 then -- BSHORT
-        return string.format("0x%04X", buffer(0, 2):uint())
-    elseif dataType == 9 then -- CHAR
-        return buffer(0, 1):int()
-    elseif dataType == 10 then -- UCHAR
-        return buffer(0, 1):uint()
-    elseif dataType == 11 then -- BCHAR
-        return string.format("0x%02X", buffer(0, 1):uint())
-    elseif dataType == 12 then -- SHORT2
-        return buffer(0, 2):int() .. ", " .. buffer(2, 2):int()
-    elseif dataType == 13 then -- USHORT2
-        return buffer(0, 2):uint() .. ", " .. buffer(2, 2):uint()
-    elseif dataType == 14 then -- BSHORT2
-        return string.format("0x%04X, 0x%04X", buffer(0, 2):uint(), buffer(2, 2):uint())
-    elseif dataType == 15 then -- CHAR4
-        return buffer(0, 1):int() .. ", " .. buffer(1, 1):int() .. ", " .. buffer(2, 1):int() .. ", " .. buffer(3, 1):int()
-    elseif dataType == 16 then -- UCHAR4
-        return buffer(0, 1):uint() .. ", " .. buffer(1, 1):uint() .. ", " .. buffer(2, 1):uint() .. ", " .. buffer(3, 1):uint()
-    elseif dataType == 17 then -- BCHAR4
-        return string.format("0x%02X, 0x%02X, 0x%02X, 0x%02X", buffer(0, 1):uint(), buffer(1, 1):uint(), buffer(2, 1):uint(), buffer(3, 1):uint())
-    elseif dataType == 18 then -- CHAR2
-        return buffer(0, 1):int() .. ", " .. buffer(1, 1):int()
-    elseif dataType == 19 then -- UCHAR2
-        return buffer(0, 1):uint() .. ", " .. buffer(1, 1):uint()
-    elseif dataType == 20 then -- BCHAR2
-        return string.format("0x%02X, 0x%02X", buffer(0, 1):uint(), buffer(1, 1):uint())
-    elseif dataType == 21 then -- MEMID
-        return "MEMID: " .. buffer:uint()
-    elseif dataType == 22 then -- CHKSUM
-        return "CHKSUM: " .. buffer:uint()
-    elseif dataType == 23 then -- ACHAR
-        return "'" .. buffer(0, 1):string() .. "'"
-    elseif dataType == 30 then -- DOUBLEH
-        return "DOUBLEH: " .. buffer:uint()
-    elseif dataType == 31 then -- DOUBLEL
-        return "DOUBLEL: " .. buffer:uint()
+    elseif dataType == 30 then
+        return buffer:uint()
+    elseif dataType == 31 then
+        return buffer:uint()
     else
         return buffer
     end
@@ -88,7 +53,6 @@ local function formatCurrent(value) return value .. " A" end
 local function formatFrequency(value) return value .. " MHz" end
 local function formatFlow(value) return value .. " kg/h" end
 local function formatTorque(value) return value .. " Nm" end
-local function formatUnknown(value) return value .. " ???" end
 
 -- format value according to https://files.stockflightsystems.com/_5_CANaerospace/canas_17.pdf
 -- WIP: to be extended !
@@ -132,8 +96,6 @@ local canIdFormattingTable = {
     [340]  = formatPercent,
     [342]  = formatPercent,
     [348]  = formatSpeed,
-    [349]  = formatSpeed,
-    [350]  = formatPressure,
     [345]  = formatSpeed,
     [500]  = formatPercent,
     [501]  = formatPercent,
@@ -395,8 +357,6 @@ local canIdFormattingTable = {
     [1131] = formatSpeed,
     [1132] = formatSpeed,
     [1133] = formatAngle,
-    [1134] = formatUnknown,
-    [1135] = formatUnknown,
     [1177] = formatPressure,
     [1178] = formatPressure,
     [1179] = formatPressure,
@@ -405,13 +365,7 @@ local canIdFormattingTable = {
     [1201] = formatPressure,
     [1202] = formatAltitude,
     [1203] = formatTemperature,
-    [1206] = function(value) return value(0, 1):uint() .. "." .. value(1, 1):uint() + 1 .. "." .. value(2, 1):uint() .. value(3, 1):uint() .. " date" end,
-
-    [1500] = formatTemperature,
-    [1501] = formatPressure,
-    [1502] = formatAcceleration,
-    [1503] = formatAcceleration,
-    [1504] = formatAcceleration
+    [1206] = function(value) return value(0, 1):uint() .. "." .. value(1, 1):uint() + 1 .. "." .. value(2, 1):uint() .. value(3, 1):uint() .. " date" end
 }
 
 local function getValue4CanId(value, canId)
@@ -938,8 +892,6 @@ utils.defaultIdentifierTable = {
     [1131] = "True North Velocity",
     [1132] = "True Up Velocity",
     [1133] = "True Heading",
-    [1134] = "GPS geoid separation",
-    [1135] = "GPS SV info, one message per SV",
     [1175] = "Gear Lever Switches",
     [1176] = "Gear Lever Lights Wow Solenoid",
     [1177] = "Landing Gear 1 Tire Pressure",
