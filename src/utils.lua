@@ -19,55 +19,77 @@ local utils = {}
 -- interpret buffer according to https://www.stockflightsystems.com/tl_files/downloads/canaerospace/canas_17.pdf
 -- WIP: to be extended !
 local function getValue4DataType(buffer, dataType)
-    if buffer:len() < 4 then return buffer end
-
     if dataType == 2 then -- FLOAT
+        if buffer:len() < 4 then return buffer end
         return buffer:float()
     elseif dataType == 3 then -- LONG
+        if buffer:len() < 4 then return buffer end
         return buffer:int()
     elseif dataType == 4 then -- ULONG
+        if buffer:len() < 4 then return buffer end
         return buffer:uint()
     elseif dataType == 5 then -- BLONG
+        if buffer:len() < 4 then return buffer end
         return string.format("0x%08X", buffer:uint())
     elseif dataType == 6 then -- SHORT
+        if buffer:len() < 2 then return buffer end
         return buffer(0, 2):int()
     elseif dataType == 7 then -- USHORT
+        if buffer:len() < 2 then return buffer end
         return buffer(0, 2):uint()
     elseif dataType == 8 then -- BSHORT
+        if buffer:len() < 2 then return buffer end
         return string.format("0x%04X", buffer(0, 2):uint())
     elseif dataType == 9 then -- CHAR
+        if buffer:len() < 1 then return buffer end
         return buffer(0, 1):int()
     elseif dataType == 10 then -- UCHAR
+        if buffer:len() < 1 then return buffer end
         return buffer(0, 1):uint()
     elseif dataType == 11 then -- BCHAR
+        if buffer:len() < 1 then return buffer end
         return string.format("0x%02X", buffer(0, 1):uint())
     elseif dataType == 12 then -- SHORT2
+        if buffer:len() < 4 then return buffer end
         return buffer(0, 2):int() .. ", " .. buffer(2, 2):int()
     elseif dataType == 13 then -- USHORT2
+        if buffer:len() < 4 then return buffer end
         return buffer(0, 2):uint() .. ", " .. buffer(2, 2):uint()
     elseif dataType == 14 then -- BSHORT2
+        if buffer:len() < 4 then return buffer end
         return string.format("0x%04X, 0x%04X", buffer(0, 2):uint(), buffer(2, 2):uint())
     elseif dataType == 15 then -- CHAR4
+        if buffer:len() < 4 then return buffer end
         return buffer(0, 1):int() .. ", " .. buffer(1, 1):int() .. ", " .. buffer(2, 1):int() .. ", " .. buffer(3, 1):int()
     elseif dataType == 16 then -- UCHAR4
+        if buffer:len() < 4 then return buffer end
         return buffer(0, 1):uint() .. ", " .. buffer(1, 1):uint() .. ", " .. buffer(2, 1):uint() .. ", " .. buffer(3, 1):uint()
     elseif dataType == 17 then -- BCHAR4
+        if buffer:len() < 4 then return buffer end
         return string.format("0x%02X, 0x%02X, 0x%02X, 0x%02X", buffer(0, 1):uint(), buffer(1, 1):uint(), buffer(2, 1):uint(), buffer(3, 1):uint())
     elseif dataType == 18 then -- CHAR2
+        if buffer:len() < 2 then return buffer end
         return buffer(0, 1):int() .. ", " .. buffer(1, 1):int()
     elseif dataType == 19 then -- UCHAR2
+        if buffer:len() < 2 then return buffer end
         return buffer(0, 1):uint() .. ", " .. buffer(1, 1):uint()
     elseif dataType == 20 then -- BCHAR2
+        if buffer:len() < 2 then return buffer end
         return string.format("0x%02X, 0x%02X", buffer(0, 1):uint(), buffer(1, 1):uint())
     elseif dataType == 21 then -- MEMID
+        if buffer:len() < 4 then return buffer end
         return "MEMID: " .. buffer:uint()
     elseif dataType == 22 then -- CHKSUM
+        if buffer:len() < 4 then return buffer end
         return "CHKSUM: " .. buffer:uint()
     elseif dataType == 23 then -- ACHAR
+        if buffer:len() < 1 then return buffer end
         return "'" .. buffer(0, 1):string() .. "'"
     elseif dataType == 30 then -- DOUBLEH
+        if buffer:len() < 4 then return buffer end
         return "DOUBLEH: " .. buffer:uint()
     elseif dataType == 31 then -- DOUBLEL
+        if buffer:len() < 4 then return buffer end
         return "DOUBLEL: " .. buffer:uint()
     else
         return buffer

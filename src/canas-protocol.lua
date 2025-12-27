@@ -117,8 +117,9 @@ function canas_proto.dissector(buffer, pinfo, tree)
     aerospace_subtree:add(header_fields.servicecode, aerospace_buffer(2, 1), aerospace_buffer(2, 1):uint())
     aerospace_subtree:add(aerospace_buffer(3, 1), "Message Code: " .. aerospace_buffer(3, 1):uint())
 
-    if aerospace_buffer:len() >= 8 then
-        aerospace_subtree:add(aerospace_buffer(4, 4), "Data: " .. utils.getValue(aerospace_buffer(4, 4), dataType, canId))
+    if aerospace_buffer:len() > 4 then
+        local data_len = aerospace_buffer:len() - 4
+        aerospace_subtree:add(aerospace_buffer(4, data_len), "Data: " .. utils.getValue(aerospace_buffer(4, data_len), dataType, canId))
     end
 
     local info = utils.defaultIdentifierTable[canId]
