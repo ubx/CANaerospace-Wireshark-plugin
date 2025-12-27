@@ -111,6 +111,7 @@ local function formatFrequency(value) return value .. " MHz" end
 local function formatFlow(value) return value .. " kg/h" end
 local function formatTorque(value) return value .. " Nm" end
 local function formatUnknown(value) return value .. " ???" end
+local function formatFlapPos(value) return value .. " 0..254" end
 
 -- format value according to https://files.stockflightsystems.com/_5_CANaerospace/canas_17.pdf
 -- WIP: to be extended !
@@ -151,7 +152,7 @@ local canIdFormattingTable = {
     [337]  = formatSpeed,
     [338]  = formatSpeed,
     [339]  = formatPressure,
-    [340]  = formatPercent,
+    [340]  = formatFlapPos,
     [342]  = formatPercent,
     [348]  = formatSpeed,
     [349]  = formatSpeed,
