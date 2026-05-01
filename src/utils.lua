@@ -101,7 +101,16 @@ local function formatFrequency(value) return value .. " MHz" end
 local function formatFlow(value) return value .. " kg/h" end
 local function formatTorque(value) return value .. " Nm" end
 local function formatUnknown(value) return value .. " ???" end
-local function formatFlapPos(value) return value .. " 0..254" end
+local function formatFlapPos(value)
+    if type(value) == "string" then
+        local p, i = string.match(value, "(%d+),%s*(%d+)")
+        if p then return p .. " %, index " .. i end
+    elseif type(value) ~= "number" then
+        -- it's a TvbRange
+        return value(0, 1):uint() .. " %_, index_ " .. value(1, 1):uint()
+    end
+    return value .. " 0..254"
+end
 
 -- format value according to https://files.stockflightsystems.com/_5_CANaerospace/canas_17.pdf
 -- WIP: to be extended !
