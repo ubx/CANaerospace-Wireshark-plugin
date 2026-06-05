@@ -104,7 +104,7 @@ local function formatUnknown(value) return value .. " ???" end
 local function formatFlapPos(value)
     if type(value) == "string" then
         local p, i = string.match(value, "(%d+),%s*(%d+)")
-        if p then return p .. " %, index " .. i end
+        if p then return p / 100 .. " V, index " .. i end
     elseif type(value) ~= "number" then
         -- it's a TvbRange
         return value(0, 1):uint() .. " %_, index_ " .. value(1, 1):uint()
