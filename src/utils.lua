@@ -86,7 +86,7 @@ local function getValue4DataType(buffer, dataType)
     end
 end
 
-local function formatSpeed(value) return value .. " m/s" end
+local function formatSpeed(value) return string.format("%.3f m/s (%.3f km/h)", value, value * 3.6) end
 local function formatDegree(value) return value / 1E7 .. " deg" end
 local function formatAcceleration(value) return value .. " m/s2" end
 local function formatRate(value) return value .. " deg/s" end
